@@ -67,8 +67,8 @@ function storeNewTokens(tokens, signedPoints) {
         }
     }
     const json = JSON.stringify(storableTokens);
-    set(STORAGE_KEY_TOKENS, json);
-    set(STORAGE_KEY_COUNT, storableTokens.length);
+    set(STORAGE_KEY_TOKENS(), json);
+    set(STORAGE_KEY_COUNT(), storableTokens.length);
 
     // Update the count on the actual icon
     updateIcon(storableTokens.length);
@@ -85,8 +85,8 @@ function storeTokens(tokens) {
         storableTokens[i] = getTokenEncoding(t,t.point);
     }
     const json = JSON.stringify(storableTokens);
-    set(STORAGE_KEY_TOKENS, json);
-    set(STORAGE_KEY_COUNT, tokens.length);
+    set(STORAGE_KEY_TOKENS(), json);
+    set(STORAGE_KEY_COUNT(), tokens.length);
 
     // Update the count on the actual icon
     updateIcon(tokens.length);
@@ -101,7 +101,7 @@ function getTokenEncoding(t, curvePoint) {
 
 // Load tokens from browser storage
 function loadTokens() {
-    const storedJSON = get(STORAGE_KEY_TOKENS);
+    const storedJSON = get(STORAGE_KEY_TOKENS());
     if (storedJSON == null) {
         return null;
     }
@@ -119,7 +119,7 @@ function loadTokens() {
 
 // Counts the tokens that are stored for the background page
 function countStoredTokens() {
-    const count = get(STORAGE_KEY_COUNT);
+    const count = get(STORAGE_KEY_COUNT());
     if (count == null) {
         return 0;
     }

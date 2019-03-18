@@ -25,13 +25,12 @@
 /* exported set */
 /* exported UpdateCallback */
 "use strict"
-
-let CHECK_COOKIES = ACTIVE_CONFIG["cookies"]["check-cookies"];
+const CHECK_COOKIES = () => ACTIVE_CONFIG()["cookies"]["check-cookies"];
 
 // Attempts to redeem a token if the series of checks passes
 function attemptRedeem(url, respTabId, target) {
     // Check all cookie stores to see if a clearance cookie is held
-    if (CHECK_COOKIES) {
+    if (CHECK_COOKIES()) {
         chrome.cookies.getAllCookieStores(function (stores) {
             let clearanceHeld = false;
             stores.forEach(function (store, index) {
@@ -69,10 +68,10 @@ function attemptRedeem(url, respTabId, target) {
 
 // Actually activate the redemption request
 function fireRedeem(url, respTabId, target) {
-    if (!isValidRedeemMethod(REDEEM_METHOD)) {
+    if (!isValidRedeemMethod(REDEEM_METHOD())) {
         throw new Error("[privacy-pass]: Incompatible redeem method selected.");
     }
-    if (REDEEM_METHOD === "reload") {
+    if (REDEEM_METHOD() === "reload") {
         setSpendFlag(url.host, true);
         let targetUrl = target[respTabId];
         if (url.href === targetUrl) {
@@ -192,7 +191,7 @@ function isFaviconUrl(url) {
 }
 
 function isValidRedeemMethod(method) {
-    return PPConfigs
+    return PPConfigs()
         .filter(config => config.id > 0)
         .map(config => config["spend-action"]["redeem-method"])
         .some(config_method => config_method === method)
@@ -204,9 +203,9 @@ function clearCachedCommitments() {
 }
 
 // localStorage API function for getting values
-function get(key) {
-    return localStorage.getItem(key);
-}
+// function get(key) {
+//     return localStorage.getItem(key);
+// }
 
 function set(key, value) {
     localStorage.setItem(key, value);
