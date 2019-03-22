@@ -4,7 +4,8 @@
  * @author: Alex Davidson
  */
 
-let workflow = workflowSet()
+const workflow = workflowSet();
+
 
 const sjcl = workflow.__get__("sjcl");
 const setConfig = workflow.__get__("setConfig");
@@ -19,9 +20,9 @@ const deriveKey = workflow.__get__("deriveKey");
 
 // mocking for tests
 
-let consoleMock = {
+const consoleMock = {
     warn: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
 };
 workflow.__set__("console", consoleMock);
 
@@ -33,7 +34,7 @@ let curveSettings;
 beforeEach(() => {
     setConfig(1);
     let count = 0;
-    CreateBlindTokenMock = function () {
+    CreateBlindTokenMock = function() {
         let token;
         if (count !== 1) {
             token = CreateBlindToken();
@@ -49,17 +50,17 @@ beforeEach(() => {
  */
 describe("check that null point errors are caught in token generation", () => {
     test("check that token generation happens correctly", () => {
-        let tokens = GenerateNewTokens(3);
+        const tokens = GenerateNewTokens(3);
         expect(tokens.length === 3).toBeTruthy();
-        let consoleNew = workflow.__get__("console");
+        const consoleNew = workflow.__get__("console");
         expect(consoleNew.warn).not.toBeCalled();
     });
 
     test("check that null tokens are caught and ignored", () => {
         workflow.__set__("CreateBlindToken", CreateBlindTokenMock);
-        let tokens = GenerateNewTokens(3);
+        const tokens = GenerateNewTokens(3);
         expect(tokens.length === 2).toBeTruthy();
-        let consoleNew = workflow.__get__("console");
+        const consoleNew = workflow.__get__("console");
         expect(consoleNew.warn).toBeCalled();
     });
 });
@@ -83,8 +84,8 @@ describe("building of redemption headers", () => {
 
         // construct and base-64 header value
         const encodedHeaderVal = BuildRedeemHeader(token, host, path);
-        let decoded = atob(encodedHeaderVal);
-        let json = JSON.parse(decoded);
+        const decoded = atob(encodedHeaderVal);
+        const json = JSON.parse(decoded);
 
         const type = json.type;
         const contents = json.contents;
@@ -94,7 +95,6 @@ describe("building of redemption headers", () => {
         expect(contents[0] === sjcl.codec.base64.fromBits(sjcl.codec.bytes.toBits(token.data))).toBeTruthy();
         // check request binding (hex is easiest way)
         expect(contents[1] === chkBinding).toBeTruthy();
-
         return contents;
     }
 
@@ -103,15 +103,14 @@ describe("building of redemption headers", () => {
             const contents = testBuildHeader();
             // Test additional H2C parameters are omitted
             expect(contents.length === 2).toBeTruthy();
-        })
-
+        });
     });
 
-    test("header value is built correctly (sendH2CParams = true)", () => {
+    test("header value is built correctly for P256 (sendH2CParams = true)", () => {
         const contents = testBuildHeader();
         // Test additional H2C parameters are constructed correctly
         expect(contents.length === 3).toBeTruthy();
-        let h2cParams = JSON.parse(atob(contents[2]));
+        const h2cParams = JSON.parse(atob(contents[2]));
         expect(h2cParams.curve === "p256").toBeTruthy();
         expect(h2cParams.hash === "sha256").toBeTruthy();
         expect(h2cParams.method === "increment").toBeTruthy();

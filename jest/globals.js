@@ -36,9 +36,6 @@ window.workflowSet = () => {
 
     let workflow = rewire("../addon/compiled/test_compiled.js");
 
-    workflow.__set__("get", getMock);
-    workflow.__set__("set", setMock);
-
     workflow.__set__("localStorage", localStorageMock);
     workflow.__set__("localStorageItems", localStorageItems);
     workflow.__set__("updateIcon", updateIconMock);
@@ -46,6 +43,9 @@ window.workflowSet = () => {
     workflow.__set__("reloadBrowserTab", reloadBrowserTabMock);
     workflow.__set__("atob", atob);
     workflow.__set__("btoa", btoa);
+
+    workflow.__set__("get", getMock);
+    workflow.__set__("set", setMock);
 
     workflow.__set__("setSpendFlag", setSpendFlagMock);
     workflow.__set__("getSpendFlag", getSpendFlagMock);

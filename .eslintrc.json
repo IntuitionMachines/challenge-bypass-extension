@@ -1,12 +1,14 @@
 {
     "env": {
         "browser": true,
-        "es6": true
+        "es6": true,
+        "jest": true
     },
     "parserOptions": {
-        "ecmaVersion": 8
+        "ecmaVersion": 8,
+        "sourceType": "script"
     },
-    "extends": "eslint:recommended",
+    "extends": ["eslint:recommended", "./node_modules/eslint-config-google/index.js"],
     "globals": {
         "browser": true,
         "chrome": true,
@@ -85,10 +87,12 @@
         "LISTENER_URLS": true,
         "getTarget": true,
         "setFutureReload": true,
-        "commitmentsKey": true
-
+        "commitmentsKey": true,
+        "getActiveECSettings": true,
+        "getConfigId": true
     },
     "rules": {
+        "new-cap": 0,
         "no-trailing-spaces": "error",
         "linebreak-style": [
             "error",
@@ -96,7 +100,8 @@
         ],
         "quotes": [
             "error",
-            "double"
+            "double",
+            { "allowTemplateLiterals": true }
         ],
         "no-unused-vars": [
             "error", {
@@ -108,6 +113,7 @@
                 "allow": ["error", "warn"]
             }
         ],
-        "indent": ["error", 4]
+        "indent": ["error", 4],
+        "max-len": 0
     }
 }

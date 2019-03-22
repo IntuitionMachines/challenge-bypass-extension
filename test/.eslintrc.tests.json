@@ -1,0 +1,49 @@
+{
+    "extends": "../.eslintrc.json",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "globals": {
+        "updateIconMock": true,
+        "workflowSet": true,
+        "bypassTokensCount": true,
+        "getMock": true,
+        "setMock": true,
+        "storedTokens": true,
+        "bypassTokens": true,
+        "clearLocalStorage": true,
+        "updateBrowserTabMock": true,
+        "getFutureReloadMock": true,
+        "getTargetMock": true,
+        "setFutureReloadMock": true,
+        "updateBrowserTabMock": true,
+        "setHttpsRedirectMock": true,
+        "getHttpsRedirectMock": true,
+        "getSpendIdMock": true,
+        "reloadBrowserTabMock": true,
+        "setSpendIdMock": true,
+        "getRedirectCountMock": true,
+        "getSpendFlagMock": true,
+        "setRedirectCountMock": true,
+        "setTimeSinceLastResp": true,
+        "mockXHRCommitments": true,
+        "setXHR": true,
+        "validateRespMock": true,
+        "mockXHRGood": true,
+        "mockXHRBadReadyState": true,
+        "mockXHRBadStatus": true,
+        "setSpentHostsMock": true,
+        "clearCachedCommitmentsMock": true,
+        "getSpentTabMock": true,
+        "clearSpentTabMock": true,
+        "getSpentUrlMock": true,
+        "setSpentUrlMock": true,
+        "setSpendFlagMock": true
+
+    },
+    "rules": {
+        "no-func-assign": 0,
+        "require-jsdoc": 0,
+        "no-invalid-this": 0
+    }
+}

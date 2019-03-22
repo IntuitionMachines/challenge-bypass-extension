@@ -5,7 +5,7 @@
  * @author Drazen Urch
  */
 
-let workflow = workflowSet();
+const workflow = workflowSet();
 
 /**
  * Functions/variables
@@ -21,41 +21,42 @@ const handleCompletion = workflow.__get__("handleCompletion");
 const committedNavigation = workflow.__get__("committedNavigation");
 
 let details;
+
 beforeEach(() => {
     details = {
         method: "GET",
         requestHeaders: [],
         requestId: "212",
-        tabId: "101"
+        tabId: "101",
     };
 });
 
 describe("https redirects", () => {
     test("non-https redirect", () => {
-        let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-        let newUrl = new URL(HTTP + ALTERN_HREF);
+        const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+        const newUrl = new URL(HTTP + ALTERN_HREF);
         processRedirect(details, oldUrl, newUrl);
         expect(getHttpsRedirectMock(newUrl.href)).toBeFalsy();
     });
 
     describe("valid redirects", () => {
         test("http www", () => {
-            let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-            let newUrl = new URL(HTTP_WWW + EXAMPLE_HREF);
+            const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+            const newUrl = new URL(HTTP_WWW + EXAMPLE_HREF);
             processRedirect(details, oldUrl, newUrl);
             expect(getHttpsRedirectMock(newUrl.href)).toBeTruthy();
         });
 
         test("https", () => {
-            let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-            let newUrl = new URL(HTTPS + EXAMPLE_HREF);
+            const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+            const newUrl = new URL(HTTPS + EXAMPLE_HREF);
             processRedirect(details, oldUrl, newUrl);
             expect(getHttpsRedirectMock(newUrl.href)).toBeTruthy();
         });
 
         test("https www", () => {
-            let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-            let newUrl = new URL(HTTPS_WWW + EXAMPLE_HREF);
+            const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+            const newUrl = new URL(HTTPS_WWW + EXAMPLE_HREF);
             processRedirect(details, oldUrl, newUrl);
             expect(getHttpsRedirectMock(newUrl.href)).toBeTruthy();
         });
@@ -64,8 +65,8 @@ describe("https redirects", () => {
 
 describe("redemption", () => {
     test("no redemption if spendId not set", () => {
-        let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-        let newUrl = new URL(HTTP + ALTERN_HREF);
+        const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+        const newUrl = new URL(HTTP + ALTERN_HREF);
         setSpendIdMock(details.requestId, false);
         setRedirectCountMock(details.requestId, 0);
         processRedirect(details, oldUrl, newUrl);
@@ -74,8 +75,8 @@ describe("redemption", () => {
     });
 
     test("no redemption if redirectCount above maximum", () => {
-        let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-        let newUrl = new URL(HTTP + ALTERN_HREF);
+        const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+        const newUrl = new URL(HTTP + ALTERN_HREF);
         setSpendIdMock(details.requestId, true);
         setRedirectCountMock(details.requestId, 5);
         processRedirect(details, oldUrl, newUrl);
@@ -84,8 +85,8 @@ describe("redemption", () => {
     });
 
     test("reload is successful", () => {
-        let oldUrl = new URL(HTTP + EXAMPLE_HREF);
-        let newUrl = new URL(HTTP + ALTERN_HREF);
+        const oldUrl = new URL(HTTP + EXAMPLE_HREF);
+        const newUrl = new URL(HTTP + ALTERN_HREF);
         setSpendIdMock(details.requestId, true);
         setRedirectCountMock(details.requestId, 0);
         processRedirect(details, oldUrl, newUrl);
@@ -116,7 +117,7 @@ describe("committed navigation", () => {
     beforeEach(() => {
         url = new URL(HTTPS + EXAMPLE_HREF);
         details = {
-            tabId: "101"
+            tabId: "101",
         };
     });
 

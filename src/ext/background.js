@@ -35,9 +35,11 @@
 
 const LISTENER_URLS = "<all_urls>";
 let CONFIG_ID = 1;
+const getConfigId = () => CONFIG_ID;
+const setConfigId = (val) => CONFIG_ID = val;
 const STORAGE_STR = "bypass-tokens-";
 const COUNT_STR = STORAGE_STR + "count-";
-const activeConfig = () => PPConfigs()[CONFIG_ID];
+const activeConfig = () => PPConfigs()[getConfigId()];
 const dev = () => activeConfig()["dev"];
 const chlClearanceCookie = () => activeConfig()["cookies"]["clearance-cookie"];
 const chlCaptchaDomain = () => activeConfig()["captcha-domain"]; // cookies have dots prepended
@@ -66,7 +68,7 @@ const storageKeyTokens = () => STORAGE_STR + activeConfig()["id"];
 const storageKeyCount = () => COUNT_STR + activeConfig()["id"];
 const h2cParams = () => activeConfig()["h2c-params"];
 const sendH2CParams = () => activeConfig()["send-h2c-params"];
-const issueActionUrls = () => activeConfig()["issue-action"]["urls"]
+const issueActionUrls = () => activeConfig()["issue-action"]["urls"];
 const reloadOnSign = () => activeConfig()["issue-action"]["sign-reload"];
 const signResponseFMT = () => activeConfig()["issue-action"]["sign-resp-format"];
 const tokensPerRequest = () => activeConfig()["issue-action"]["tokens-per-request"];
@@ -92,7 +94,7 @@ let spentHosts = new Map();
 let spentUrl = new Map();
 
 // We want to monitor attempted spends to check if we should remove cookies
-let httpsRedirect = new Map();
+const httpsRedirect = new Map();
 
 // Monitor whether we have already sent tokens for signing
 let sentTokens = new Map();
@@ -142,7 +144,7 @@ const incrRedirectCount = (key) => redirectCount[key] += 1;
 
 /**
  * Runs when a request is completed
- * @param details HTTP request details
+ * @param {Object} details HTTP request details
  */
 function handleCompletion(details) {
     timeSinceLastResp = Date.now();
@@ -150,15 +152,15 @@ function handleCompletion(details) {
     if (getSpendId(details.requestId) && redeemMethod() === "reload") {
         reloadBrowserTab(details.tabId);
     }
-    setSpendId(details.requestId, false)
+    setSpendId(details.requestId, false);
 }
 
 /**
  * If a redirect occurs then we want to see if we had spent previously
  * If so then it is likely that we will want to spend on the redirect
- * @param details contains the HTTP redirect info
- * @param oldUrl URL object of previous navigation
- * @param newUrl URL object of current redirection
+ * @param {Object} details contains the HTTP redirect info
+ * @param {URL} oldUrl URL object of previous navigation
+ * @param {URL} newUrl URL object of current redirection
  */
 function processRedirect(details, oldUrl, newUrl) {
     setHttpsRedirect(newUrl.href, validRedirect(oldUrl.href, newUrl.href));
@@ -172,12 +174,18 @@ function processRedirect(details, oldUrl, newUrl) {
     }
 }
 
+/**
+ * Checks if a redirect is valid using the VALID_REDIRECTS config option
+ * @param {URL} oldUrl
+ * @param {URL} redirectUrl
+ * @return {boolean}
+ */
 function validRedirect(oldUrl, redirectUrl) {
     if (oldUrl.includes("http://")) {
-        let urlStr = oldUrl.substring(7);
-        let valids = validRedirects();
+        const urlStr = oldUrl.substring(7);
+        const valids = validRedirects();
         for (let i = 0; i < valids.length; i++) {
-            let newUrl = valids[i] + urlStr;
+            const newUrl = valids[i] + urlStr;
             if (newUrl === redirectUrl) {
                 return true;
             }
@@ -189,8 +197,9 @@ function validRedirect(oldUrl, redirectUrl) {
 /**
  * Headers are received before document render. The blocking attributes allows
  * us to cancel requests instead of loading an unnecessary ReCaptcha widget.
- * @param details contains the HTTP response info
- * @param url request URL object
+ * @param {Object} details contains the HTTP response info
+ * @param {URL} url request URL object
+ * @return {boolean}
  */
 function processHeaders(details, url) {
     // We're not interested in running this logic for favicons
@@ -199,7 +208,7 @@ function processHeaders(details, url) {
     }
 
     let activated = false;
-    for (var i = 0; i < details.responseHeaders.length; i++) {
+    for (let i = 0; i < details.responseHeaders.length; i++) {
         const header = details.responseHeaders[i];
         if (header.name.toLowerCase() === CHL_BYPASS_RESPONSE) {
             if (header.value === chlVerificationError()
@@ -223,7 +232,7 @@ function processHeaders(details, url) {
     // If we have tokens to spend, cancel the request and pass execution over to the token handler.
     let attempted = false;
     if (activated && !getSpentUrl(url.href)) {
-        let count = countStoredTokens();
+        const count = countStoredTokens();
         if (doRedeem()) {
             if (count > 0 && !url.host.includes(chlCaptchaDomain())) {
                 attemptRedeem(url, details.tabId, target);
@@ -245,27 +254,27 @@ function processHeaders(details, url) {
 /**
  * If a spend flag is set then we alter the request and add a header
  * containing a valid BlindTokenRequest for redemption
- * @param request HTTP request details
- * @param url URL object of request
+ * @param {Object} request HTTP request details
+ * @param {URL} url URL object of request
+ * @return {Object} an object containing new headers for the request
  */
 function beforeSendHeaders(request, url) {
     // Cancel if we don't have a token to spend
 
-    let reqUrl = url.href;
-    let host = url.host;
+    const reqUrl = url.href;
+    const host = url.host;
 
     if (doRedeem() && !isErrorPage(reqUrl) && !isFaviconUrl(reqUrl) && !checkMaxSpend(host) && getSpendFlag(host)) {
         // No reload method branch
         if (redeemMethod() === "no-reload") {
             // check that we're at an URL that can handle redeems
             const isRedeemUrl = spendActionUrls()
-                .map(redeemUrl => patternToRegExp(redeemUrl))
-                .some(re => reqUrl.match(re));
+                .map((redeemUrl) => patternToRegExp(redeemUrl))
+                .some((re) => reqUrl.match(re));
 
             setSpendFlag(url.host, null);
 
             if (countStoredTokens() > 0 && isRedeemUrl) {
-
                 const tokenToSpend = GetTokenForSpend();
                 if (tokenToSpend == null) {
                     return {cancel: false};
@@ -273,14 +282,18 @@ function beforeSendHeaders(request, url) {
                 setSpendFlag(host, null);
                 incrementSpentHost(host);
 
-                const http_path = request.method + " " + url.pathname;
-                const redemptionString = BuildRedeemHeader(tokenToSpend, url.hostname, http_path);
-                let headers = request.requestHeaders
+                const httpPath = request.method + " " + url.pathname;
+                const redemptionString = BuildRedeemHeader(tokenToSpend, url.hostname, httpPath);
+                const headers = request.requestHeaders;
                 headers.push({name: headerName(), value: redemptionString});
                 headers.push({name: headerHostName(), value: url.hostname});
-                headers.push({name: headerPathName(), value: http_path});
+                headers.push({name: headerPathName(), value: httpPath});
                 setSpendId(request.requestId, true);
                 setSpentUrl(reqUrl, true);
+                if (!getSpentTab(request.tabId)) {
+                    setSpentTab(request.tabId, []);
+                }
+                getSpentTab(request.tabId).push(url.href);
                 return {requestHeaders: headers};
             }
         } else if (redeemMethod() === "reload" && !getSpentUrl(reqUrl)) {
@@ -288,12 +301,17 @@ function beforeSendHeaders(request, url) {
         }
     }
 
-    return {cancel: false}
+    return {cancel: false};
 }
 
-// returns the new headers for the request
+/**
+ * Creates redemption headers if the tab should be reloaded
+ * @param {Object} request HTTP request details
+ * @param {URL} url URL of the request
+ * @return {Object} contains new header objects
+ */
 function getReloadHeaders(request, url) {
-    let headers = request.requestHeaders;
+    const headers = request.requestHeaders;
     setSpendFlag(url.host, null);
     incrementSpentHost(url.host);
     setTarget(request.tabId, "");
@@ -305,8 +323,8 @@ function getReloadHeaders(request, url) {
     }
 
     const method = request.method;
-    const http_path = method + " " + url.pathname;
-    const redemptionString = BuildRedeemHeader(tokenToSpend, url.hostname, http_path);
+    const httpPath = method + " " + url.pathname;
+    const redemptionString = BuildRedeemHeader(tokenToSpend, url.hostname, httpPath);
     const newHeader = {name: headerName(), value: redemptionString};
     headers.push(newHeader);
     setSpendId(request.requestId, true);
@@ -314,17 +332,19 @@ function getReloadHeaders(request, url) {
     if (!getSpentTab(request.tabId)) {
         setSpentTab(request.tabId, []);
     }
-    let spentTabs = getSpentTab(request.tabId);
-    spentTabs.push(url.href)
+    const spentTabs = getSpentTab(request.tabId);
+    spentTabs.push(url.href);
     setSpentTab(request.tabId, spentTabs);
     return {requestHeaders: headers};
 }
 
 /**
- * This function filters requests before we've made a connection. If we don't
- * have tokens, it asks for new ones when we solve a captcha.
- * @param details HTTP request details
- * @param url URL object of request
+ * Filters requests before we've made a connection. If a challenge is observed
+ * and we don't have available tokens to spend then it sends tokens to the
+ * server.
+ * @param {Object} details HTTP request details
+ * @param {URL} url URL object of request
+ * @return {Object} contains XHR details for sending tokens
  */
 function beforeRequest(details, url) {
     // Clear vars if they haven't been used for a while
@@ -339,7 +359,7 @@ function beforeRequest(details, url) {
 
     // Different signing methods based on configs
     let xhrInfo;
-    switch (CONFIG_ID) {
+    switch (getConfigId()) {
     case 1:
         xhrInfo = signReqCF(url);
         break;
@@ -357,25 +377,26 @@ function beforeRequest(details, url) {
     readySign = false;
 
     // actually send the token signing request via xhr and return the xhr object
-    let xhr = sendXhrSignReq(xhrInfo, url, details.tabId);
+    const xhr = sendXhrSignReq(xhrInfo, url, details.tabId);
     return {xhr: xhr};
 }
 
-// Set the target URL for the spend and update the tab if necessary
 /**
- * When navigation is committed we may want to reload.
- * @param details Navigation details
- * @param url url of navigation
+ * Set the target URL for the spend and update the tab if necessary. When
+ * navigation is committed we may want to reload.
+ * @param {Object} details Navigation details
+ * @param {URL} url URL of navigation
  */
 function committedNavigation(details, url) {
-    let redirect = details.transitionQualifiers[0];
-    let tabId = details.tabId;
+    const redirect = details.transitionQualifiers[0];
+    const tabId = details.tabId;
     if (!badNav().includes(details.transitionType)
         && (!checkBadTransition(url.href, redirect, details.transitionType))
         && !isNewTab(url.href)
     ) {
-        let id = getTabId(tabId);
+        const id = getTabId(tabId);
         setTarget(id, url.href);
+
         // If a reload was attempted but target hadn't been inited then reload now
         if (getFutureReload(id) === getTarget(id)) {
             setFutureReload(id, false);
@@ -384,7 +405,12 @@ function committedNavigation(details, url) {
     }
 }
 
-// Handle messages from popup
+/**
+ * Handles messages from the plugin HTML that need BG page functionality
+ * @param {Object} request HTTP request details
+ * @param {Object} sender Used by the plugin to communicate with the BG page
+ * @param {Function} sendResponse sends the response back to the plugin HTML
+ */
 function handleMessage(request, sender, sendResponse) {
     if (request.callback) {
         UpdateCallback = request.callback;
@@ -396,21 +422,34 @@ function handleMessage(request, sender, sendResponse) {
 }
 
 /* Token storage functions */
+
+/**
+ * Increments the number of spends for a given host
+ * @param {string} host String corresponding to host
+ */
 function incrementSpentHost(host) {
     if (getSpentHosts(host) === undefined) {
         setSpentHosts(host, 0);
     }
-    setSpentHosts(host, getSpentHosts(host) + 1)
+    setSpentHosts(host, getSpentHosts(host) + 1);
 }
 
+/**
+ * Checks whether the given host has not exceeded the max number of spends
+ * @param {string} host
+ * @return {boolean}
+ */
 function checkMaxSpend(host) {
     if (getSpentHosts(host) === undefined || getSpentHosts(host) < spendMax() || spendMax() === 0) {
         return false;
     }
-    return true
+    return true;
 }
 
-// Pops a token from storage for a redemption
+/**
+ * Pops a token from storage for a redemption
+ * @return {Object} token object
+ */
 function GetTokenForSpend() {
     let tokens = loadTokens();
     // prevent null checks
@@ -424,7 +463,9 @@ function GetTokenForSpend() {
 }
 
 
-// Clears the stored tokens and other variables
+/**
+ * Clears the stored tokens and other variables
+ */
 function clearStorage() {
     clear();
     resetVars();
@@ -436,21 +477,31 @@ function clearStorage() {
 
 /* Utility functions */
 
-// Checks whether a transition is deemed to be bad to prevent loading subresources
-// in address bar
+/**
+ * Indicates whether a bad state transition has occurred
+ * @param {string} href href string of URL object
+ * @param {string} type type of navigation
+ * @param {string} transitionType type of state transition for navigation
+ * @return {boolean}
+ */
 function checkBadTransition(href, type, transitionType) {
     if (getHttpsRedirect(href)) {
         setHttpsRedirect(href, false);
         return false;
     }
-    let maybeGood = (validTransitions().includes(transitionType));
+    const maybeGood = (validTransitions().includes(transitionType));
+
     if (!type && !maybeGood) {
         return true;
     }
     return badTransition().includes(type);
 }
 
-// Checks if the tab is deemed to be new or not
+/**
+ * Checks if the tab is deemed to be new or not
+ * @param {string} url string href of URL object
+ * @return {boolean}
+ */
 function isNewTab(url) {
     for (let i = 0; i < newTabs().length; i++) {
         if (url.includes(newTabs()[i])) {
@@ -460,7 +511,9 @@ function isNewTab(url) {
     return false;
 }
 
-// Reset variables
+/**
+ * Reset variables
+ */
 function resetVars() {
     redirectCount = new Map();
     sentTokens = new Map();
@@ -470,7 +523,9 @@ function resetVars() {
     spentHosts = new Map();
 }
 
-// Reset variables that are used for restricting spending
+/**
+ * Reset variables that are specifically used for restricting spending
+ */
 function resetSpendVars() {
     spentTab = new Map();
     spentUrl = new Map();
@@ -480,25 +535,26 @@ function resetSpendVars() {
  * Checks whether a header should activate the extension. The value dictates
  * whether to swap to a new configuration
  * @param {header} header
+ * @return {boolean}
  */
 function isBypassHeader(header) {
-    let newConfigVal = parseInt(header.value);
+    const newConfigVal = parseInt(header.value);
     if (header.name.toLowerCase() === CHL_BYPASS_SUPPORT && newConfigVal !== 0) {
-        if (newConfigVal !== CONFIG_ID) {
+        if (newConfigVal !== getConfigId()) {
             setConfig(newConfigVal);
         }
-        return true
+        return true;
     }
     return false;
 }
 
 /**
- * CHanges the active configuration when the client receives a new configuration
+ * Changes the active configuration when the client receives a new configuration
  * value.
  * @param {int} val
  */
 function setConfig(val) {
-    CONFIG_ID = val
+    setConfigId(val);
     initECSettings(h2cParams());
     clearCachedCommitments();
     countStoredTokens();
