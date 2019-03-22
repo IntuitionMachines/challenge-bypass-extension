@@ -1,6 +1,6 @@
 /**
 * Integration tests for token generation and commitment functionality
-* 
+*
 * @author: Alex Davidson
 */
 import rewire from 'rewire';
@@ -102,18 +102,18 @@ describe("building of redemption headers", () => {
         expect(contents[0] == sjcl.codec.base64.fromBits(sjcl.codec.bytes.toBits(token.data))).toBeTruthy();
         // check request binding (hex is easiest way)
         expect(contents[1] === chkBinding).toBeTruthy();
-        
+
         return contents;
     }
 
-    test("header value is built correctly (SEND_H2C_PARAMS = false)", () => {
-        workflow.__set__("SEND_H2C_PARAMS", false);
+    test("header value is built correctly (sendH2CParams = false)", () => {
+        workflow.__set__("sendH2CParams", false);
         const contents = testBuildHeader();
         // Test additional H2C parameters are omitted
         expect(contents.length === 2).toBeTruthy();
     });
 
-    test("header value is built correctly (SEND_H2C_PARAMS = true)", () => {
+    test("header value is built correctly (sendH2CParams = true)", () => {
         const contents = testBuildHeader();
         // Test additional H2C parameters are constructed correctly
         expect(contents.length === 3).toBeTruthy();
