@@ -1,6 +1,6 @@
 /**
 * Integrations tests for processing redirections
-* 
+*
 * @author: Alex Davidson
 */
 import rewire from "rewire";
@@ -23,10 +23,10 @@ let localStorage;
 let details;
 /* mock impls */
 function getMock(key) {
-    return localStorage[key]; 
+    return localStorage[key];
 }
 function setMock(key, value) {
-    localStorage[key] = value; 
+    localStorage[key] = value;
 }
 function getSpendFlag(key) {
     return getMock(key);
