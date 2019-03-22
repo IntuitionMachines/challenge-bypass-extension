@@ -28,7 +28,9 @@
 /* exported CONFIG_ID */
 /* exported issueActionUrls */
 /* exported LISTENER_URLS */
-/* exported CONFIG_STORAGE_KEY */
+/* exported getTarget */
+/* exported setFutureReload */
+
 "use strict";
 
 const LISTENER_URLS = "<all_urls>";
@@ -107,6 +109,33 @@ let spentTab = new Map();
 // Track whether we should try to initiate a signing request
 let readySign = false;
 
+
+const getSpentUrl = (key) => spentUrl[key];
+const setSpentUrl = (key, value) => spentUrl[key] = value;
+
+const getSpendId = (key) => spendId[key];
+const setSpendId = (key, value) => spendId[key] = value;
+
+const getSpentTab = (key) => spentTab[key];
+const setSpentTab = (key, value) => spentTab[key] = value;
+
+const getSpentHosts = (key) => spentHosts[key];
+const setSpentHosts = (key, value) => spentHosts[key] = value;
+
+const getFutureReload = (key) => futureReload[key];
+const setFutureReload = (key, value) => futureReload[key] = value;
+
+const getTarget = (key) => target[key];
+const setTarget = (key, value) => target[key] = value;
+
+const getHttpsRedirect = (key) => httpsRedirect[key];
+const setHttpsRedirect = (key, value) => httpsRedirect[key] = value;
+
+const getRedirectCount = (key) => redirectCount[key];
+const setRedirectCount = (key, value) => redirectCount[key] = value;
+const incrRedirectCount = (key) => redirectCount[key] += 1;
+
+
 /**
  * Functions used by event listeners (listeners.js)
  */
@@ -132,14 +161,14 @@ function handleCompletion(details) {
  * @param newUrl URL object of current redirection
  */
 function processRedirect(details, oldUrl, newUrl) {
-    httpsRedirect[newUrl.href] = validRedirect(oldUrl.href, newUrl.href);
-    if (redirectCount[details.requestId] === undefined) {
-        redirectCount[details.requestId] = 0;
+    setHttpsRedirect(newUrl.href, validRedirect(oldUrl.href, newUrl.href));
+    if (getRedirectCount(details.requestId) === undefined) {
+        setRedirectCount(details.requestId, 0);
     }
-    if (getSpendId(details.requestId) && redirectCount[details.requestId] < maxRedirect()) {
+    if (getSpendId(details.requestId) && getRedirectCount(details.requestId) < maxRedirect()) {
         setSpendFlag(newUrl.host, true);
         setSpendId(details.requestId, false);
-        redirectCount[details.requestId] = redirectCount[details.requestId] + 1;
+        incrRedirectCount(details.requestId);
     }
 }
 
@@ -156,19 +185,6 @@ function validRedirect(oldUrl, redirectUrl) {
     }
     return false;
 }
-
-const getSpentUrl = (key) => spentUrl[key];
-const setSpentUrl = (key, value) => spentUrl[key] = value;
-
-const getSpendId = (key) => spendId[key];
-const setSpendId = (key, value) => spendId[key] = value;
-
-const getSpentTab = (key) => spentTab[key];
-const setSpentTab = (key, value) => spentTab[key] = value;
-
-const getSpentHosts = (key) => spentHosts[key];
-const setSpentHosts = (key, value) => spentHosts[key] = value;
-
 
 /**
  * Headers are received before document render. The blocking attributes allows
@@ -280,7 +296,7 @@ function getReloadHeaders(request, url) {
     let headers = request.requestHeaders;
     setSpendFlag(url.host, null);
     incrementSpentHost(url.host);
-    target[request.tabId] = "";
+    setTarget(request.tabId, "");
 
     // Create a pass and reload to send it to the edge
     const tokenToSpend = GetTokenForSpend();
@@ -355,14 +371,15 @@ function committedNavigation(details, url) {
     let redirect = details.transitionQualifiers[0];
     let tabId = details.tabId;
     if (!badNav().includes(details.transitionType)
-        && (!badTransition(url.href, redirect, details.transitionType))
-        && !isNewTab(url.href)) {
+        && (!checkBadTransition(url.href, redirect, details.transitionType))
+        && !isNewTab(url.href)
+    ) {
         let id = getTabId(tabId);
-        target[id] = url.href;
+        setTarget(id, url.href);
         // If a reload was attempted but target hadn't been inited then reload now
-        if (futureReload[id] === target[id]) {
-            futureReload[id] = false;
-            updateBrowserTab(id, target[id]);
+        if (getFutureReload(id) === getTarget(id)) {
+            setFutureReload(id, false);
+            updateBrowserTab(id, getTarget(id));
         }
     }
 }
@@ -422,8 +439,8 @@ function clearStorage() {
 // Checks whether a transition is deemed to be bad to prevent loading subresources
 // in address bar
 function checkBadTransition(href, type, transitionType) {
-    if (httpsRedirect[href]) {
-        httpsRedirect[href] = false;
+    if (getHttpsRedirect(href)) {
+        setHttpsRedirect(href, false);
         return false;
     }
     let maybeGood = (validTransitions().includes(transitionType));
