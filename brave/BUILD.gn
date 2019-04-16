@@ -1,0 +1,34 @@
+challenge_bypass_build_path = "$root_gen_dir/addon/compiled"
+
+challenge_bypass_ext_path = challenge_bypass_build_path
+
+ config("external_config") {
+  include_dirs = [ "src" ]
+  libs = [ challenge_bypass_ext_path ]
+}
+
+yarn_build("challenge_bypass_extension") {
+  public_configs = [ ":external_config" ]
+
+  manifest_path = "package.json"
+
+  inputs = [
+    "src/ext/utils.js",
+    "src/crypto/sjcl/sjcl.js",
+    "src/ext/config.js",
+    "src/ext/h2c.js",
+    "src/crypto/local.js",
+    "src/ext/tokens.js",
+    "src/ext/issuance.js",
+    "src/ext/redemption.js",
+    "src/ext/browserUtils.js",
+    "src/ext/background.js",
+    "src/ext/listeners.js",
+    "src/crypto/keccak/keccak.js"
+  ]
+
+  output = challenge_bypass_ext_path
+
+  build_path = challenge_bypass_build_path
+
+}
