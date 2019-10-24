@@ -238,7 +238,7 @@ function validateAndStoreTokens(url, tabId, tokens, issueResp) {
     const version = checkVersion(issueResp.version);
     let commitments;
     // retrieve CF 1.0 commitments from source code or cache otherwise
-    if (version === "1.0" && getConfigName() === "CF") {
+    if (version === "1.0") {
         commitments = storedCommitments()[version];
     } else {
         commitments = getCachedCommitments(version);
@@ -333,10 +333,14 @@ function retrieveCommitments(xhr, version) {
     if (Date.now() >= expDate) {
         throw new Error("[privacy-pass]: Commitments expired in " + expDate);
     }
-    if (cmt.sig !== undefined) {
-        verifyCommitments(cmt, getCommitmentsKey());
-        // throw new Error("[privacy-pass]: Signature field is missing.");
+    if (cmt.sig === undefined) {
+        throw new Error("[privacy-pass]: Signature field is missing.");
     }
+
+    verifyCommitments(cmt, getCommitmentsKey());
+
+    // verifyCommitments(cmt, getCommitmentsKey());
+
     return {G: cmt.G, H: cmt.H};
 }
 

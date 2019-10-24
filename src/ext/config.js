@@ -131,6 +131,12 @@ function PPConfigs() {
     hcConfig.cookies["clearance-cookie"] = "hc_clearance";
     hcConfig["captcha-domain"] = "hcaptcha.com";
     hcConfig["send-h2c-params"] = true;
+    hcConfig["commitments"] = {
+        "1.0": {
+            "G": "BMKCnVDWUEBNiyAR+p0YT7QvtrOfpHAeatzipwo6x98Ch1q3ZoCkNdiQvUTEwDzG20RplG/IE2NCpsXZGLsUdvA=",
+            "H": "BNJIpofS4RhbUfnkblr5yvuymaEfV+ViKshsoN9DkCRaHBB+TiKUnicc14gBswpLfBaKXuC102Cvwzq3YIN8dVo=",
+        },
+    };
 
     // Ordering of configs should correspond to value of cf-chl-bypass header
     // i.e. the first config should have "id": 1, the second "id":2, etc.
